@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  product-service-api:
+    container_name: product-service-api
+    build:
+      context: ./product.service
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./product.service/.env
+    networks:
+      - product-service-api-network
+    depends_on:
+      - product-service-api-mongodb
+
+  product-service-api-mongodb:
+    container_name: product-service-api-mongodb
+    image: mongo:3
+    ports:
+      - "27017:27017"
+    volumes:
+      - product_service_api_mongo:/data/db
+    networks:
+      - product-service-api-network
+
+networks:
+  product-service-api-network:
+    driver: bridge
+
+volumes:
+  product_service_api_mongo:
+    driver: local
