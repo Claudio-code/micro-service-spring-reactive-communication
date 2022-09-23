@@ -22,6 +22,8 @@ services:
       - MONGO_INITDB_DATABASE=productdb
       - MONGO_INITDB_ROOT_USERNAME=randomUser
       - MONGO_INITDB_ROOT_PASSWORD=randomPassword
+    expose:
+      - "27017"
     ports:
       - "27017:27017"
     volumes:
