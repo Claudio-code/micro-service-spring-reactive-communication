@@ -17,7 +17,11 @@ services:
 
   product-service-api-mongodb:
     container_name: product-service-api-mongodb
-    image: mongo:3
+    image: mongo:6
+    environment:
+      - MONGO_INITDB_DATABASE=productdb
+      - MONGO_INITDB_ROOT_USERNAME=randomUser
+      - MONGO_INITDB_ROOT_PASSWORD=randomPassword
     ports:
       - "27017:27017"
     volumes:
