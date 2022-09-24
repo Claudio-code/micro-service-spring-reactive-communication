@@ -6,6 +6,14 @@
     "configurations": [
         {
             "type": "java",
+            "name": "user service Application",
+            "request": "launch",
+            "mainClass": "com.user.service.Application",
+            "projectName": "./user.service",
+            "envFile": "${workspaceFolder}/.env-local"
+        },
+        {
+            "type": "java",
             "name": "Launch Current File",
             "request": "launch",
             "mainClass": "${file}"

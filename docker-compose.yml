@@ -31,10 +31,27 @@ services:
     networks:
       - product-service-api-network
 
+  user-service-postgres:
+    container_name: user-service-postgres
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: goStack
+      PGDATA: /data/postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - user_service_api_postgres:/data/postgres
+    networks:
+      - product-service-api-network
+
 networks:
   product-service-api-network:
     driver: bridge
 
 volumes:
   product_service_api_mongo:
+    driver: local
+  user_service_api_postgres:
     driver: local
