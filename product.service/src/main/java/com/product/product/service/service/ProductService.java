@@ -6,6 +6,7 @@ import com.product.product.service.factory.ProductFactory;
 import com.product.product.service.repository.ProductRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Range;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -53,6 +54,13 @@ public class ProductService {
         return productRepository.deleteById(id)
                 .doOnSuccess(unused -> log.info("M=ProductDeleted with success product id {}", id))
                 .doOnError(throwable -> log.error("M=ProductDeleted with it error message {}", throwable.getMessage()));
+    }
+
+
+    public Flux<ProductDTO> getProductsPriceRange(final Integer min, final Integer max) {
+        return productRepository.findByPriceBetween(Range.closed(min, max))
+                .map(ProductDTOFactory::make)
+                .doOnComplete(() -> log.info("M=Find products between to values min {} | max {}", min, max));
     }
 
 }
