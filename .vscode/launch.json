@@ -12,10 +12,10 @@
         },
         {
             "type": "java",
-            "name": "Launch Application",
+            "name": "prduct service Application",
             "request": "launch",
             "mainClass": "com.product.product.service.Application",
-            "projectName": "product.service",
+            "projectName": "./product.service",
             "envFile": "${workspaceFolder}/.env-local"
         }
     ]
