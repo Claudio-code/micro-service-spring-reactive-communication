@@ -51,12 +51,13 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: goStack
+      POSTGRES_DB: user-service
       PGDATA: /data/postgres
     ports:
       - "5432:5432"
     volumes:
       - user_service_api_postgres:/data/postgres
+      - ./user.service/docker/schema.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - product-service-api-network
 
