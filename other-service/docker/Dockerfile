@@ -14,4 +14,4 @@ FROM openjdk:17-slim-bullseye
 
 COPY --from=builder /builder/build/libs/other-service-0.0.1-SNAPSHOT.jar /app.jar
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar", "-Xms128m", "-Xmx600m"]

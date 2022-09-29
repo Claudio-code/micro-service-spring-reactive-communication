@@ -67,7 +67,7 @@ services:
       context: ./other-service
       dockerfile: ./docker/Dockerfile
     ports:
-      - "8082:8080"
+      - "8083:8080"
     env_file:
       - ./other-service/.env
     networks:
