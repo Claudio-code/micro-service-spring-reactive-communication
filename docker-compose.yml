@@ -89,6 +89,33 @@ services:
     networks:
       - product-service-api-network
 
+  rabbitmq-api:
+    container_name: rabbitmq-api
+    build:
+      context: ./rabbitmq.api
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - "8084:8084"
+    env_file:
+      - ./rabbitmq.api/.env
+    networks:
+      - product-service-api-network
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    hostname: rabbitmq-one
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+      - rabbitmq_log:/var/log/rabbitmq
+    networks:
+      - product-service-api-network
+
 networks:
   product-service-api-network:
     driver: bridge
@@ -99,4 +126,8 @@ volumes:
   user_service_api_postgres:
     driver: local
   other_service_api_mysql:
+    driver: local
+  rabbitmq_log:
+    driver: local
+  rabbitmq_data:
     driver: local
