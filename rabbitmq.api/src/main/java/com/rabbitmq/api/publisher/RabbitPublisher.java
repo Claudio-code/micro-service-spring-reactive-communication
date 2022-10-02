@@ -17,6 +17,8 @@ import reactor.rabbitmq.Sender;
 import javax.annotation.PreDestroy;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -30,7 +32,7 @@ public class RabbitPublisher implements CommandLineRunner {
     final Flux<Delivery> deliveryFlux;
 
     @Override
-    public void run(String... args) throws JsonProcessingException {
+    public void run(String... args) throws JsonProcessingException, InterruptedException {
         final var objectMapper = new ObjectMapper();
         final var messageDTO = BodyDTO
                 .builder()
@@ -38,13 +40,16 @@ public class RabbitPublisher implements CommandLineRunner {
                 .body("My message")
                 .build();
         int messageCount = 10;
+        CountDownLatch latch = new CountDownLatch(messageCount);
         final var messageDTOBytes = objectMapper.writeValueAsBytes(messageDTO);
         final var message = Flux.range(1, messageCount)
                 .map(i -> new OutboundMessage("", QUEUE, messageDTOBytes));
 
         sender.send(message)
                 .doOnNext(unused -> log.info("Message sent"))
-                .subscribe();
+                .subscribe(unused -> log.info("Message sent"));
+
+        latch.await(10L, TimeUnit.SECONDS);
     }
 
     @PreDestroy

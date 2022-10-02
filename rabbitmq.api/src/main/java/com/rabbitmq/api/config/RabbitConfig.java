@@ -55,9 +55,16 @@ public class RabbitConfig {
         return RabbitFlux.createSender(senderOptions);
     }
 
+
     @Bean
-    Receiver receiver(Mono<Connection> connectionMono) {
-        return RabbitFlux.createReceiver(new ReceiverOptions().connectionMono(connectionMono));
+    public ReceiverOptions receiverOptions(Mono<Connection> connectionMono) {
+        return new ReceiverOptions()
+                .connectionMono(connectionMono);
+    }
+
+    @Bean
+    Receiver receiver(ReceiverOptions receiverOptions) {
+        return RabbitFlux.createReceiver(receiverOptions);
     }
 
     @Bean
