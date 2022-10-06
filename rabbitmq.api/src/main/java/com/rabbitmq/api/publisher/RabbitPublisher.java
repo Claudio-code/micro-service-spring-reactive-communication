@@ -13,13 +13,14 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.rabbitmq.OutboundMessage;
 import reactor.rabbitmq.Sender;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 import javax.annotation.PreDestroy;
+
+import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -39,18 +40,25 @@ public class RabbitPublisher implements CommandLineRunner {
                 .id(UUID.randomUUID().toString())
                 .body("My message")
                 .build();
-        int messageCount = 10;
-        CountDownLatch latch = new CountDownLatch(messageCount);
+
         final var messageDTOBytes = objectMapper.writeValueAsBytes(messageDTO);
-        final var message = Flux.range(1, messageCount)
-                .map(i -> new OutboundMessage("", QUEUE, messageDTOBytes));
-
-        sender.send(message)
-                .doOnNext(unused -> log.info("Message sent"))
-                .subscribe(unused -> log.info("Message sent"));
-
-        latch.await(10L, TimeUnit.SECONDS);
+        sender.send(Mono.just(new OutboundMessage("", QUEUE, messageDTOBytes)))
+                .doOnSuccess(unused -> log.info("Message sent"))
+                .retryWhen(connectionFailure())
+                .onErrorResume(error -> {
+                    log.error(QUEUE, error);
+                    return Mono.empty();
+                })
+                .subscribe();
     }
+
+
+    private static RetryBackoffSpec connectionFailure() {
+        return Retry.backoff(10L, Duration.ofMinutes(1))
+                .doBeforeRetry(arg0 -> log.error("before Retrying due to exception...", arg0.failure()))
+                .doAfterRetry(arg0 -> log.error("Retrying due to exception...", arg0.failure()));
+    }
+
 
     @PreDestroy
     public void close() throws Exception {

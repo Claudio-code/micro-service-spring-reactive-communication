@@ -4,14 +4,13 @@ import com.rabbitmq.client.Address;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Delivery;
+import com.rabbitmq.client.ListAddressResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import reactor.rabbitmq.RabbitFlux;
 import reactor.rabbitmq.Receiver;
 import reactor.rabbitmq.ReceiverOptions;
@@ -25,29 +24,24 @@ import java.util.stream.Stream;
 @Configuration
 public class RabbitConfig {
 
-    @Value("${spring.rabbitmq.addresses}")
+    @Value("${rabbitmq.addresses}")
     String address;
 
     static final String QUEUE = "new_randow-queue";
-    RabbitProperties rabbitProperties;
-
-    public RabbitConfig(RabbitProperties rabbitProperties) {
-        this.rabbitProperties = rabbitProperties;
-    }
 
     @Bean
     Mono<Connection> connectionMono() {
-        ConnectionFactory connectionFactory = new ConnectionFactory();
-        return Mono.fromCallable(() -> connectionFactory.newConnection(
-                parserAddress(),
-                "reactive-sender")).cache();
+        final var connectionFactory = new ConnectionFactory();
+        connectionFactory.useNio();
+
+        return Mono.fromCallable(() -> connectionFactory
+                .newConnection(parserAddress()))
+                .cache();
     }
 
     @Bean
     public SenderOptions senderOptions(Mono<Connection> connectionMono) {
-        return new SenderOptions()
-                .connectionMono(connectionMono)
-                .resourceManagementScheduler(Schedulers.boundedElastic());
+        return new SenderOptions().connectionMono(connectionMono);
     }
 
     @Bean
@@ -72,12 +66,11 @@ public class RabbitConfig {
         return receiver.consumeNoAck(QUEUE);
     }
 
-
-    private Address[] parserAddress() {
-        List<Address> addressStream = Stream.of(address.split(","))
+    private ListAddressResolver parserAddress() {
+        final List<Address> addressList = Stream.of(address.split(","))
                 .map(Address::new)
                 .toList();
-        return addressStream.toArray(new Address[0]);
+        return new ListAddressResolver(addressList);
     }
 
 }
